@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+**/dist
+**/build
+**/.turbo
+**/coverage
+.git
+.env
+.env.*
+!.env.example
+apps/api/uploads
+**/e2e/test-results
+**/e2e/playwright-report
+design-reference
+*.log

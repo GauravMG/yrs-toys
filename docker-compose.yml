@@ -1,0 +1,92 @@
+name: yrs-toys
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-yrs}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-yrs_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-yrs_toys}
+    ports:
+      - "${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-yrs} -d ${POSTGRES_DB:-yrs_toys}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"
+      - "${MAILHOG_UI_PORT:-8025}:8025"
+
+  adminer:
+    image: adminer:4.8.1
+    restart: unless-stopped
+    profiles: ["dev"]
+    ports:
+      - "${ADMINER_PORT:-8082}:8080"
+    depends_on:
+      - postgres
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: 4000
+      DATABASE_URL: postgresql://${POSTGRES_USER:-yrs}:${POSTGRES_PASSWORD:-yrs_dev_password}@postgres:5432/${POSTGRES_DB:-yrs_toys}
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-dev_access_secret_change_me}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-dev_refresh_secret_change_me}
+      JWT_ACCESS_TTL: ${JWT_ACCESS_TTL:-15m}
+      JWT_REFRESH_TTL: ${JWT_REFRESH_TTL:-30d}
+      SMTP_HOST: mailhog
+      SMTP_PORT: 1025
+      MAIL_FROM: ${MAIL_FROM:-YRS Toys <hello@yrstoys.in>}
+      CORS_ORIGIN_WEB: ${CORS_ORIGIN_WEB:-http://localhost:8080}
+      CORS_ORIGIN_ADMIN: ${CORS_ORIGIN_ADMIN:-http://localhost:8081}
+      UPLOAD_DIR: /app/uploads
+    ports:
+      - "${API_PORT:-4000}:4000"
+    volumes:
+      - api_uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mailhog:
+        condition: service_started
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_WEB_API_BASE_URL:-http://localhost:4000/api/v1}
+    restart: unless-stopped
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    depends_on:
+      - api
+
+  admin:
+    build:
+      context: .
+      dockerfile: docker/admin.Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_ADMIN_API_BASE_URL:-http://localhost:4000/api/v1}
+    restart: unless-stopped
+    ports:
+      - "${ADMIN_PORT:-8081}:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  api_uploads:

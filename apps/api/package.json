@@ -1,0 +1,45 @@
+{
+  "name": "@yrs/api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src --ext .ts",
+    "test": "vitest run",
+    "test:unit": "vitest run src/__tests__/unit",
+    "test:integration": "vitest run src/__tests__/integration"
+  },
+  "dependencies": {
+    "@yrs/db": "workspace:*",
+    "@yrs/shared": "workspace:*",
+    "fastify": "^5.1.0",
+    "@fastify/cors": "^10.0.1",
+    "@fastify/helmet": "^13.0.0",
+    "@fastify/rate-limit": "^10.1.1",
+    "@fastify/cookie": "^11.0.1",
+    "@fastify/multipart": "^9.0.1",
+    "@fastify/static": "^8.0.2",
+    "@fastify/swagger": "^9.2.0",
+    "@fastify/swagger-ui": "^5.1.0",
+    "fastify-type-provider-zod": "^4.0.2",
+    "fastify-plugin": "^5.0.1",
+    "zod": "^3.23.8",
+    "argon2": "^0.41.1",
+    "jose": "^5.9.6",
+    "nanoid": "^5.0.8",
+    "nodemailer": "^6.9.16",
+    "dotenv": "^16.4.5"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "tsx": "^4.19.2",
+    "vitest": "^2.1.4",
+    "@types/node": "^22.9.0",
+    "@types/nodemailer": "^6.4.16",
+    "pino-pretty": "^11.3.0"
+  }
+}
