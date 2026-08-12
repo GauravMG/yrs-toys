@@ -1,5 +1,16 @@
+import path from "node:path";
+import { config as loadEnv } from "dotenv";
 import { PrismaClient, AgeGroup, Role, ReviewStatus, CouponType } from "@prisma/client";
 import argon2 from "argon2";
+
+// Run directly via `tsx prisma/seed.ts` (both by hand and via `prisma db
+// seed`'s orchestration), this script bypasses prisma.config.ts entirely —
+// that file's env loading only applies to Prisma CLI commands (generate,
+// migrate). Load the monorepo root .env explicitly here too, the same way
+// prisma.config.ts and apps/api/src/config/env.ts do, so this doesn't
+// silently depend on @prisma/client's own narrower auto-loading (which
+// only looks next to schema.prisma, not at the repo root).
+loadEnv({ path: path.join(import.meta.dirname, "../../../.env") });
 
 const prisma = new PrismaClient();
 
