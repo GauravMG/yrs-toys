@@ -29,6 +29,13 @@ import { registerUploadRoutes } from "./modules/uploads/routes.js";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const fastify = Fastify({
+    // The API is always deployed behind a reverse proxy (nginx locally in
+    // Docker Compose isn't in front of it, but the EC2/production topology
+    // terminates TLS at nginx and forwards to this service) — without
+    // trustProxy, request.ip would report the proxy's address for every
+    // request, which breaks the IP audit trail on refresh-token rows
+    // (see modules/auth/repository.ts's createdByIp).
+    trustProxy: true,
     logger:
       env.NODE_ENV === "development"
         ? { transport: { target: "pino-pretty", options: { translateTime: "HH:MM:ss", ignore: "pid,hostname" } } }
