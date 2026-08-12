@@ -85,6 +85,14 @@ docker compose ps postgres   # wait for "healthy"
 #   curl -fsSL https://get.pnpm.io/install.sh | sh -
 #   source ~/.bashrc
 pnpm install
+
+# `pnpm install` does NOT reliably generate the Prisma client for this
+# repo's non-default schema path, and `migrate deploy` deliberately doesn't
+# generate it either (it's meant to be side-effect-light for CI/prod) — skip
+# this and every `@prisma/client` import fails with something like
+# "does not provide an export named 'AgeGroup'".
+pnpm --filter @yrs/db exec prisma generate
+
 pnpm --filter @yrs/db exec prisma migrate deploy
 pnpm --filter @yrs/db exec tsx prisma/seed.ts
 ```
